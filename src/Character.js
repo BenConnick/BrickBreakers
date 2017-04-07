@@ -19,68 +19,8 @@ class Character {
     this.moveUp = false; // if character is moving up
     this.vx = 0; // x velocity
     this.vy = 0; // y velocity
-    this.color = "rgb(1,1,1)";
-    this.move = () => {
-      const square = this;
-      
-      // apply friction
-      square.vx *= 0.8;
-      square.vy *= 0.8;
-    
-      //move the last x/y to our previous x/y variables
-      square.prevX = square.x;
-      square.prevY = square.y;
-
-      //if user is jumping, decrease y velocity
-      if(square.moveUp) {
-        square.vy = -5;
-      }
-      //if user is moving down, increase y velocity
-      if(square.moveDown) {
-        square.vy = 5;
-      }
-      //if user is moving left, decrease x velocity
-      if(square.moveLeft) {
-        square.vx = -5;
-      }
-      //if user is moving right, increase x velocity
-      if(square.moveRight) {
-        square.vx = 5;
-      }
-
-      // add velocity with dt to get desired position
-      square.destY = square.prevY + square.vy;
-      square.destX = square.prevX + square.vx;
-
-      // clamp bounds
-      // ---------------------------------------
-      if(square.destY < 0) {
-        square.destY = 0;
-      }
-      if(square.destY > canvas.width) {
-        square.destY = canvas.width;
-      }
-      if(square.destX < 0) {
-        square.destX = 0;
-      }
-      if(square.destX > canvas.height) {
-        square.destX = canvas.height;
-      }
-      // ---------------------------------------
-      
-      // set pos
-      square.x = square.destX;
-      square.y = square.destY;
-    }
-    this.lerp = () => {
-      const square = this;
-
-      //if alpha less than 1, increase it by 0.01
-      if(square.alpha < 1) square.alpha += 0.05;
-
-      //calculate lerp of the x/y from the destinations
-      square.x = lerp(square.prevX, square.destX, square.alpha);
-      square.y = lerp(square.prevY, square.destY, square.alpha);
-      }
+    this.color = 'rgb(1,1,1)';
   }
 }
+
+module.exports.Character = Character;

@@ -26,8 +26,8 @@ const gameImages = {};
 loadDirectoryIntoDictionary(gameImages, 'images');
 
 // const index = fs.readFileSync(`${__dirname}/../client/client.html`);
-//const controllerPage = fs.readFileSync(`${__dirname}/../public/controller.html`);
-//const hostPage = fs.readFileSync(`${__dirname}/../public/game.html`);
+// const controllerPage = fs.readFileSync(`${__dirname}/../public/controller.html`);
+// const hostPage = fs.readFileSync(`${__dirname}/../public/game.html`);
 const clientPage = fs.readFileSync(`${__dirname}/../public/game.html`);
 
 const servePage = (response) => {

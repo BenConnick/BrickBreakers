@@ -7,7 +7,6 @@
 
 const http = require('http');
 const socketio = require('socket.io');
-
 const fileHandler = require('./fileHandler.js');
 const playerHandler = require('./playerHandler.js');
 
@@ -59,7 +58,6 @@ const onInput = (sock) => {
   socket.on('input', (data) => {
     // parse message
     playerHandler.parsePlayerInput(socket, data);
-    physics.updateSimulation();
   });
 };
 
@@ -86,7 +84,7 @@ const onPosition = (sock) => {
   socket.on('position', (data) => {
     playerHandler.movePlayer(data);
   });
-}
+};
 
 io.sockets.on('connection', (socket) => {
   console.log('started');
@@ -101,9 +99,9 @@ io.sockets.on('connection', (socket) => {
 
 const sendUpdateToClients = () => {
   playerHandler.updateClients(io);
-}
+};
 
 // tick rate 20ms
-setInterval(sendUpdateToClients,20);
+setInterval(sendUpdateToClients, 20);
 
 console.log('websocket server started');
