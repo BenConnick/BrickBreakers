@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!-- This is the page for the player to see, where they control the game from -->
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densityDpi=device-dpi" />
+	<link href="https://fonts.googleapis.com/css?family=IM+Fell+English+SC" rel="stylesheet">
+	<title>Brick Breakers</title>
+	<style>
+	  canvas {
+	    background-color: #ffe;
+	  }
+		body {
+			margin: 0;
+			padding: 0;
+			font-family: Arial;
+			font-size: 7vw;
+			/* no highlight text */
+			  -webkit-touch-callout: none; /* iOS Safari */
+			  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+			  -khtml-user-select: none;    /* Konqueror */
+			  -moz-user-select: none;      /* Firefox */
+			  -ms-user-select: none;       /* Internet Explorer/Edge */
+			  user-select: none;           /* Non-prefixed version, currently
+											  not supported by any browser */
+		}
+    input {
+        width: 50vw;
+        height: 5vw;
+        font-size: 4vw;
+    }
+		#resultsContainer {
+			background-color: black;
+			color: white;
+			display: none;
+		}
+		#resultsContainer header {
+			color: black;
+			padding-left: 0.5em;
+			background-color: lightgray;
+		}
+		#resultsInner {
+			padding-left: 0.5em;
+			overflow-y: scroll;
+		}
+    #nameScreen {
+        text-align: center;
+    }
+		#controllerScreen {
+			display: none;
+		}
+
+	</style>
+</head>
+<body>
+	<div id="nameScreen">
+        <br>
+		<span>Enter a name</span><br/>
+		<input type="text" id="nameInput"></input><br/><br/>
+		<span>Enter the room code</span><br><input type="text" id="roomInput"></input><br/>
+		<button id="submitBtn">DONE</button>
+	</div>
+	</div>
+	<div id="controllerScreen">
+	</div>
+	<div id="resultsContainer">
+		<header></header>
+		<div id="resultsInner"></div>
+	</div>
+	<canvas width='800' height='800'></canvas>
+</body>
+<script src="socketio.min.js"></script>
+<script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+<script src="bundle.js"></script>
