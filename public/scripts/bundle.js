@@ -47,6 +47,7 @@ var Character = function Character(name) {
   this.vx = 0; // x velocity
   this.vy = 0; // y velocity
   this.color = "rgb(1,1,1)";
+  this.score = 0;
   this.move = function () {
     var square = _this;
 
@@ -161,6 +162,9 @@ var setupSocketIO = function setupSocketIO() {
   controllerSocket.on('output', function (msg) {
     handleMessageFromServer(msg);
   });
+  controllerSocket.on('player disconnected', function (msg) {
+    removeAvatar(msg);
+  });
   controllerSocket.on('join status', function (status) {
     if (status == 'success') {
       joinSucceed();
@@ -178,7 +182,10 @@ var canvas = void 0;
 var ctx = void 0;
 // the dictionary of players
 var players = {};
+// reference to the ball
 var ball = new Ball();
+// list of the bricks
+var bricks = [];
 
 var directions = {
   DOWNLEFT: 0,
@@ -197,68 +204,31 @@ var draw = function draw() {
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // draw bricks
+  ctx.fillStyle = "#444444";
+  bricks.forEach(function (b) {
+    ctx.fillRect(b.x, b.y, b.w, b.w);
+  });
+
   // draw players
   for (var name in players) {
     if (players.hasOwnProperty(name)) {
       var p = players[name];
       ctx.fillStyle = p.color;
-      ctx.fillText("" + name, p.x + 5, p.y + 65);
+      ctx.fillText(name + "(" + p.score + ")", p.x + 5, p.y + 65);
       ctx.fillRect(p.x, p.y, 50, 50);
     }
   }
 
   // draw ball
-  if (players[ball.owner]) {
-    ctx.fillStyle = players[ball.owner].color;
+  if (players[ball.ownerName]) {
+    ctx.fillStyle = players[ball.ownerName].color;
   } else {
     ctx.fillStyle = "white";
   }
   var size = 10;
-  if (ball.hit) size = 15;
+  if (ball.hit) size = 20;
   ctx.fillRect(ball.x, ball.y, size, size);
-
-  /*
-  // reset transform (scale 3)
-  const gScale = 2;
-  ctx.setTransform(gScale, 0, 0, gScale, 0, gScale);
-  // draw floor
-  currentFloor.display(ctx);
-   // asfdasdfasfd
-  let index = 0;
-  // draw players
-  players.forEach((player) => {
-    index++;
-    if (player.visible) {
-      player.draw(ctx);
-    }
-    if (player.actionsLeft === 0) {
-      console.log(player.actionsLeft);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = 'white';
-      ctx.beginPath();
-      console.log(i);
-      // ctx.arc(100,100,30,0,2*Math.PI,true);
-      ctx.arc(canvas.width / 2 - 40, 10 + 15 * index, 10, 0, 2 * Math.PI, true);
-      // ctx.arc(canvas.width - 40,20+20*i,10,0,2*Math.PI);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = 'black';
-      ctx.fillText(`P${index}`, canvas.width / 2 - 46, 14 + 15 * index);
-    }
-  });
-  // draw enemies
-  currentFloor.enemies.forEach((enemy) => {
-    if (currentFloor.rooms[enemy.roomNum].visible) { enemy.draw(ctx); }
-  });
-  currentFloor.items.forEach((item) => {
-    if (currentFloor.rooms[item.roomNum].visible) { item.draw(ctx); }
-  });
-  // draw the effects
-  effectsManager.updateAll();
-  effectsManager.drawAll(ctx);
-  // draw the "timer" indicator
-  // drawTimer(ctx,{x: 600, y: 50},gameTime%turnInterval/turnInterval);
-  */
 };
 
 // get a random color
@@ -266,12 +236,22 @@ var randC = function randC() {
   return Math.floor(Math.random() * 255) + 100;
 };
 
+// player disconnected, stop drawing their avatar
+var removeAvatar = function removeAvatar(name) {
+  delete players[name];
+};
+
 var handleMessageFromServer = function handleMessageFromServer(msg) {
   // update ball
   ball = msg.ball;
+  // update blocks
+  bricks = msg.bricks;
   // update other players
   for (var characterName in msg.characters) {
-    if (characterName === myName) continue;
+    if (characterName === myName) {
+      players[characterName].score = msg.characters[characterName].score;
+      continue;
+    }
     if (msg.characters.hasOwnProperty(characterName)) {
       var c = msg.characters[characterName];
       players[characterName] = c;
@@ -286,17 +266,6 @@ var addPlayer = function addPlayer(name) {
   players[name] = new Character(name);
   players[name].color = "rgb(" + randC() + "," + randC() + "," + randC() + ")";
   console.log(players[name].color);
-
-  /*if (getPlayer(name)) return;
-  console.log(`added ${name}`);
-  const newb = new Player(name, type);
-  newb.x = spawn.x;
-  newb.y = spawn.y;
-  newb.prevPos.x = spawn.x;
-  newb.prevPos.y = spawn.y;
-  players.push(newb);
-  return newb;
-  console.log(players);*/
 };
 
 //handle for key down events

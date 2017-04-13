@@ -47,6 +47,9 @@ const setupSocketIO = () => {
   controllerSocket.on('output', (msg) => {
     handleMessageFromServer(msg);
   });
+  controllerSocket.on('player disconnected', (msg) => {
+    removeAvatar(msg);
+  });
   controllerSocket.on('join status', (status) => {
     if (status == 'success') { joinSucceed(); } else {
       joinFail(status);

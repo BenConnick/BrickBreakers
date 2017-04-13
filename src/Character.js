@@ -20,6 +20,7 @@ class Character {
     this.vx = 0; // x velocity
     this.vy = 0; // y velocity
     this.color = 'rgb(1,1,1)';
+    this.score = 0;
   }
 }
 

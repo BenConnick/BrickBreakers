@@ -1,7 +1,7 @@
 /*
 *  server.js
 *  author: Ben Connick
-*  last modified: 03/14/17
+*  last modified: 04/12/17
 *  purpose: handle socket events, serve files to the clients
 */
 
@@ -65,24 +65,18 @@ const onDisconnect = (sock) => {
   const socket = sock;
 
   socket.on('disconnect', () => {
-    // message for remaining users
-    const leaveMsg = {
-      name: 'server',
-      msg: `${socket.name} left the room. There are ${Object.keys(users).length - 1} users online`,
-    };
-
-    delete users[socket.name]; // clear user from list
-
-    socket.broadcast.to('room1').emit('msg', leaveMsg);
-
-    console.log(`${socket.name} left`);
+    // remove socket and emit message
+    playerHandler.removeSocket(socket);
+    // clear user from list
+    delete users[socket.name];
   });
 };
 
 const onPosition = (sock) => {
   const socket = sock;
   socket.on('position', (data) => {
-    playerHandler.movePlayer(data);
+    // move player if the player is registered
+    if (!playerHandler.checkForOldPlayer(sock, data)) { playerHandler.movePlayer(data); }
   });
 };
 

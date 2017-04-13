@@ -1,29 +1,15 @@
 /*
 *  playerHandler.js
 *  author: Ben Connick
-*  last modified: 03/14/17
+*  last modified: 04/12/17
 *  purpose: handle server code related to player management
 */
 
-class Ball {
-  constructor() {
-    // position (animated)
-    this.x = 400;
-    this.y = 400;
-    // velocity
-    this.vx = 3;
-    this.vy = 3;
-    this.prevX = 0; // last known x location of ball
-    this.prevY = 0; // last known y location of ball
-    this.destX = 0; // destination x location of ball
-    this.destY = 0; // destination y location of ball
-    this.ownerName = undefined; // owner name
-    this.alpha = 0;
-  }
-}
+// include game instance
+const gameInstanceModule = require('./GameInstance.js');
 
 // list of sockets and names
-const players = [];
+const sockets = [];
 // player dictionary by name
 const playerDic = {};
 
@@ -64,7 +50,7 @@ const elemWithProperty = (arrayOfObjects, propertyName, match) => {
 };
 
 const getPlayerSocketFromName = (name) => {
-  const el = elemWithProperty(players, 'name', name);
+  const el = elemWithProperty(sockets, 'name', name);
   if (el) {
     return el.socket;
   }
@@ -78,7 +64,7 @@ const getPlayerSocketFromName = (name) => {
 };*/
 
 const getPlayerNameFromSocket = (socket) => {
-  const el = elemWithProperty(players, 'socket', socket);
+  const el = elemWithProperty(sockets, 'socket', socket);
   if (el) {
     return el.name;
   }
@@ -101,25 +87,23 @@ const playerJoined = (socket, msg) => {
       // create room object
       rooms[join.roomKey] = {
         key: join.roomKey,
-        players: {},
-        characters: {},
-        ball: new Ball(),
+        gameInstance: new gameInstanceModule.GameInstance(),
       };
     }
 
     // add to dictionary
-    playerDic[join.name] = players[players.length - 1];
+    playerDic[join.name] = sockets[sockets.length - 1];
 
     // join the room
     socket.join(join.roomKey);
     // add player to per-room list
-    rooms[join.roomKey].players[join.name] = players[players.length - 1];
+    rooms[join.roomKey].gameInstance.addCharacter(join.name);
     // set room
-    players[players.length - 1].room = join.roomKey;
+    sockets[sockets.length - 1].room = join.roomKey;
     // add player avatar to the world
     socket.to(join.roomKey).emit('add player', `{ "name" : "${join.name}"}`);
     // set name
-    players[players.length - 1].name = join.name;
+    sockets[sockets.length - 1].name = join.name;
     // success
     socket.emit('join status', 'success');
 
@@ -130,104 +114,49 @@ const playerJoined = (socket, msg) => {
 
 const trackSocket = (socket) => {
   // add the client
-  players.push({ socket, name: 'unknown', room: 'no room' });
+  sockets.push({ socket, name: 'unknown', room: 'no room' });
 };
 
 const movePlayer = (data) => {
-  if (playerDic[data.name] === undefined) {
-    throw new Error('player from a previous session rejoined');
-  }
-  // trust incoming data
-  getRoomObjectFromPlayerName(data.name).characters[data.name] = data;
+  // move player using game instance
+  getRoomObjectFromPlayerName(data.name).gameInstance.movePlayer(data);
 };
 
-const checkCollisions = (b, characters) => {
-  const ball = b;
-  const bW = 10; // ball width
-  const cW = 50; // character width
-  let collision = false;
-  ball.hit = false;
-  // loop through characters
-  const names = Object.keys(characters);
-
-  for (let i = 0; i < names.length; i++) {
-    if (Object.prototype.hasOwnProperty.call(characters, names[i])) {
-      const character = characters[names[i]];
-      /* if (ball.prevX <= character.prevX+cW && ball.prevX >= character.prevX
-      || ball.prevX + bW <= character.prevX+cW && ball.prevX + bW >= character.prevX) {
-        if (ball.prevY <= character.prevY+cW && ball.prevY >= character.prevY
-        || ball.prevY + bW <= character.prevY+cW && ball.prevY + bW >= character.prevY) {
-          collision = true;
-        }
-      }*/
-      if (ball.prevX <= character.prevX + cW && ball.prevX >= character.prevX) {
-        if (ball.prevY <= character.prevY + cW && ball.prevY >= character.prevY) {
-          collision = true;
-        }
-      }
-      if (collision) {
-        const relativeX = (ball.prevX + (bW / 2)) - (character.prevX + (cW / 2));
-        const relativeY = (ball.prevY + (bW / 2)) - (character.prevY + (cW / 2));
-
-        // horizontal collision
-        if (Math.abs(relativeX) > Math.abs(relativeY)) {
-          if (relativeX < 0) { // ball left of character
-            ball.vx = -3; // "magic number" for velocity :(
-          } else { // to the right
-            ball.vx = 3; // "magic number" for velocity :(
-          }
-        // vertical collision
-        } else if (relativeY < 0) { // ball below
-          ball.vy = -3; // "magic number" for velocity :(
-        } else { // to the above
-          ball.vy = 3; // "magic number" for velocity :(
-        }
-        ball.owner = character.name;
-        ball.hit = true;
-        // debug
-        // console.log(`hit! bX: ${ball.prevX}, bY: ${ball.prevY},
-        // cX: ${character.prevX}, cY: ${character.prevY}`);
-        break;
-      }
-    }
-  }
-};
-
-const updateBall = (b, characters) => {
-  const ball = b;
-  const max = 800;
-  const axisSpeed = 3;
-  // update position
-  ball.prevX = ball.destX;
-  ball.prevY = ball.destY;
-  ball.destX = ball.prevX + ball.vx;
-  ball.destY = ball.prevY + ball.vy;
-  // bounding
-  if (ball.destX > max) ball.vx = -axisSpeed;
-  if (ball.destX < 0) ball.vx = axisSpeed;
-  if (ball.destY > max) ball.vy = -axisSpeed;
-  if (ball.destY < 0) ball.vy = axisSpeed;
-  // collision
-  checkCollisions(ball, characters);
-};
-
+// for each room, update simulation for all clients in the room
 const updateClients = (io) => {
   const roomKeys = Object.keys(rooms);
-
   for (let i = 0; i < roomKeys.length; i++) {
     if (Object.prototype.hasOwnProperty.call(rooms, roomKeys[i])) {
       const room = rooms[roomKeys[i]];
-      updateBall(room.ball, room.characters);
-      // emit the list of characters to each room
-      const output = {
-        characters: room.characters,
-        ball: room.ball,
-      };
-      io.to(room.key).emit('output', output);
+      room.gameInstance.updateClients(io, room.key);
     }
   }
 };
 
+// kick old players
+const checkForOldPlayer = (sock, data) => {
+  if (playerDic[data.name] === undefined) {
+    // removeSocket(sock);
+    // send message to socket to exit old session
+    return true;
+  }
+  return false;
+};
+
+const removeSocket = (sock) => {
+  const name = getPlayerNameFromSocket(sock);
+  // don't bother with players from old sessions
+  if (name === undefined || playerDic[name] === undefined) return;
+  const socketIndex = sockets.indexOf(sock);
+  sock.to(playerDic[name].room).emit('player disconnected', name);
+  delete rooms[playerDic[name].room].gameInstance.characters[name];
+  delete playerDic[name];
+  delete sockets[socketIndex];
+  console.log(`${name} left`);
+};
+
+module.exports.removeSocket = removeSocket;
+module.exports.checkForOldPlayer = checkForOldPlayer;
 module.exports.updateClients = updateClients;
 module.exports.movePlayer = movePlayer;
 module.exports.playerJoined = playerJoined;
