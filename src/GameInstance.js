@@ -107,7 +107,7 @@ class GameInstance {
       if (Object.prototype.hasOwnProperty.call(this.characters, names[i])) {
         const character = this.characters[names[i]];
 
-        collision = this.boxCollision(
+        collision = GameInstance.boxCollision(
           ball.prevX,
           ball.prevY,
           this.bW,
@@ -138,7 +138,7 @@ class GameInstance {
 
     // loop through bricks
     this.bricks.forEach((brick) => {
-      collision = this.boxCollision(
+      collision = GameInstance.boxCollision(
           ball.prevX,
           ball.prevY,
           this.bW,
@@ -152,8 +152,8 @@ class GameInstance {
         this.rebound(ball, brick.x, brick.y, brick.w);
         // destroy brick
         this.bricks.splice(this.bricks.indexOf(brick), 1);
-        // give points to the player who last hit the ball
-        if (ball.ownerName) {
+        // give points to the player who last hit the ball (if they exist)
+        if (ball.ownerName && this.characters[ball.ownerName]) {
           // increase score
           this.characters[ball.ownerName].score += 1;
         }
