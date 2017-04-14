@@ -2,6 +2,8 @@
 const controllerSocket = io();
 let myName = 'bob';
 let roomKey = '';
+// html elements
+let sound;
 
 // set up on start
 const appInit = () => {
@@ -11,9 +13,42 @@ const appInit = () => {
     console.log('join');
     attemptJoin();
   };
-  // handles communication with the server
-  setupSocketIO();
+  setupSocketIO(); // handles communication with the server
+  PrepareSounds();
+  document.addEventListener('keydown',enterKeyDown);
 };
+
+const enterKeyDown = (e) => {
+  //handle enter key pressed
+  let keyPressed = e.which;
+  
+  // ENTER
+  if (keyPressed === 13) {
+    console.log("asdf");
+    if (!playing)
+      attemptJoin();
+  }
+}
+
+const PrepareSounds = () => {
+  sound = document.querySelector("audio");
+  /*createjs.Sound.addEventListener("fileload", handleLoadComplete);
+  createjs.Sound.registerSound({src:"sounds/Powerup.wav", id:"sound"});
+  const handleLoadComplete = (event) => {
+    createjs.Sound.play("sound");
+  }*/
+}
+
+const playSound = (name) => {
+  let mediaElem = undefined;
+  switch(name) {
+    case "hit":
+      mediaElem = sound;
+  }
+  if (mediaElem && mediaElem.paused) {
+    mediaElem.play();
+  }
+}
 
 // join a game
 const attemptJoin = () => {

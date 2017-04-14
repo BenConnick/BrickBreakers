@@ -16,10 +16,10 @@ class Ball {
     // velocity
     this.vx = 3;
     this.vy = 3;
-    this.prevX = 0; // last known x location of ball
-    this.prevY = 0; // last known y location of ball
-    this.destX = 0; // destination x location of ball
-    this.destY = 0; // destination y location of ball
+    this.prevX = 400; // last known x location of ball
+    this.prevY = 400; // last known y location of ball
+    this.destX = 400; // destination x location of ball
+    this.destY = 400; // destination y location of ball
     this.ownerName = undefined; // owner name
     this.alpha = 0;
   }
@@ -29,7 +29,7 @@ class Brick {
   constructor(_x, _y) {
     this.x = _x; // x pos
     this.y = _y; // y pos
-    this.w = 75; // width
+    this.w = 60; // width
   }
 }
 
@@ -39,21 +39,28 @@ class GameInstance {
     this.bricks = [];
     this.characters = {};
     this.ball = new Ball();
+    this.numCharacters = 0;
 
     this.bW = 10; // ball width
     this.cW = 50; // character width
 
     const numRows = 5;
-    const brickDist = 120;
-    for (let i = 0; i < numRows * numRows; i++) {
-      const x = ((i % numRows) * brickDist) + brickDist;
-      const y = (Math.floor(i / numRows) * brickDist) + brickDist;
-      this.bricks[i] = new Brick(x, y);
+    const numCols = 10;
+    const brickDist = 80;
+    let count = 0;
+    for (let i = 0; i < numCols; i++) {
+      const x = (i * brickDist);
+      for (let j = 0; j < numRows; j++) {
+        const y = (j * brickDist);
+        this.bricks[count] = new Brick(x, y);
+        count += 1;
+      }
     }
   }
 
   addCharacter(name) {
     this.characters[name] = new characterModule.Character();
+    this.numCharacters += 1;
   }
 
   movePlayer(data) {
@@ -161,7 +168,20 @@ class GameInstance {
     });
   }
 
-  update() {
+  checkForWinner() {
+    // loop through characters
+    const names = Object.keys(this.characters);
+    for (let i = 0; i < names.length; i++) {
+      if (Object.prototype.hasOwnProperty.call(this.characters, names[i])) {
+        const character = this.characters[names[i]];
+        if (character.score > this.bricks.length) {
+          // winner found, end game
+        }
+      }
+    }
+  }
+
+  updateBall() {
     const ball = this.ball;
     const max = 800;
     const axisSpeed = 3;
@@ -177,6 +197,11 @@ class GameInstance {
     if (ball.destY < 0) ball.vy = axisSpeed;
     // collision
     this.checkCollisions();
+  }
+
+  update() {
+    this.updateBall();
+    this.checkForWinner();
   }
 
   updateClients(io, key) {

@@ -26,6 +26,9 @@ const onRequest = (request, response) => {
       } else if (request.url.indexOf('.png') > -1) {
         // ONLY WORKS FOR PNG RIGHT NOW
         fileHandler.serveImage(request.url, response);
+      } else if (request.url.indexOf('.mp3') > -1) {
+        // ONLY WORKS FOR MP3 RIGHT NOW
+        fileHandler.serveSound(request.url, response);
       // invalid request
       } else {
         response.end();

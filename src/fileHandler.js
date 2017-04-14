@@ -25,6 +25,10 @@ loadDirectoryIntoDictionary(gameScripts, 'scripts');
 const gameImages = {};
 loadDirectoryIntoDictionary(gameImages, 'images');
 
+// all sounds contained in "sounds" directory
+const gameSounds = {};
+loadDirectoryIntoDictionary(gameSounds, 'sounds');
+
 // const index = fs.readFileSync(`${__dirname}/../client/client.html`);
 // const controllerPage = fs.readFileSync(`${__dirname}/../public/controller.html`);
 // const hostPage = fs.readFileSync(`${__dirname}/../public/game.html`);
@@ -69,6 +73,27 @@ const serveImage = (imgName, response) => {
   response.end();
 };
 
+// ONLY WORKS FOR OGG RIGHT NOW
+const serveSound = (soundN, response) => {
+  let soundName = soundN;
+  // remove extension, just file name
+  if (soundName.indexOf('/') > -1) {
+    soundName = soundName.slice(soundName.indexOf('/') + 1, soundName.length);
+  }
+
+  // get already-loaded script
+  const sound = gameSounds[soundName];
+  // undefined error
+  if (!sound) {
+    throw new Error(`file "${soundName}" was not loaded`);
+  }
+  // write out
+  response.writeHead(200, { 'Content-Type': 'audio/mp3' });
+  response.write(sound);
+  response.end();
+};
+
 module.exports.servePage = servePage;
 module.exports.serveScript = serveScript;
 module.exports.serveImage = serveImage;
+module.exports.serveSound = serveSound;

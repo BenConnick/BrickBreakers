@@ -117,6 +117,8 @@ var Character = function Character(name) {
 var controllerSocket = io();
 var myName = 'bob';
 var roomKey = '';
+// html elements
+var sound = void 0;
 
 // set up on start
 var appInit = function appInit() {
@@ -126,8 +128,40 @@ var appInit = function appInit() {
     console.log('join');
     attemptJoin();
   };
-  // handles communication with the server
-  setupSocketIO();
+  setupSocketIO(); // handles communication with the server
+  PrepareSounds();
+  document.addEventListener('keydown', enterKeyDown);
+};
+
+var enterKeyDown = function enterKeyDown(e) {
+  //handle enter key pressed
+  var keyPressed = e.which;
+
+  // ENTER
+  if (keyPressed === 13) {
+    console.log("asdf");
+    if (!playing) attemptJoin();
+  }
+};
+
+var PrepareSounds = function PrepareSounds() {
+  sound = document.querySelector("audio");
+  /*createjs.Sound.addEventListener("fileload", handleLoadComplete);
+  createjs.Sound.registerSound({src:"sounds/Powerup.wav", id:"sound"});
+  const handleLoadComplete = (event) => {
+    createjs.Sound.play("sound");
+  }*/
+};
+
+var playSound = function playSound(name) {
+  var mediaElem = undefined;
+  switch (name) {
+    case "hit":
+      mediaElem = sound;
+  }
+  if (mediaElem && mediaElem.paused) {
+    mediaElem.play();
+  }
 };
 
 // join a game
@@ -186,6 +220,8 @@ var players = {};
 var ball = new Ball();
 // list of the bricks
 var bricks = [];
+// game started
+var playing = false;
 
 var directions = {
   DOWNLEFT: 0,
@@ -200,6 +236,7 @@ var directions = {
 
 // draw to the screen
 var draw = function draw() {
+
   // clear color
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -215,8 +252,12 @@ var draw = function draw() {
     if (players.hasOwnProperty(name)) {
       var p = players[name];
       ctx.fillStyle = p.color;
-      ctx.fillText(name + "(" + p.score + ")", p.x + 5, p.y + 65);
-      ctx.fillRect(p.x, p.y, 50, 50);
+      ctx.fillText(name + "(" + p.score + ")", p.x + 5, p.y + 72);
+      if (ball.hit && ball.ownerName == p.name) {
+        ctx.fillRect(p.x - 5, p.y - 5, 60, 60);
+      } else {
+        ctx.fillRect(p.x, p.y, 50, 50);
+      }
     }
   }
 
@@ -227,8 +268,12 @@ var draw = function draw() {
     ctx.fillStyle = "white";
   }
   var size = 10;
-  if (ball.hit) size = 20;
-  ctx.fillRect(ball.x, ball.y, size, size);
+  var offset = 0;
+  if (ball.hit) {
+    size = 20;
+    offset = -5;
+  }
+  ctx.fillRect(ball.x + offset, ball.y + offset, size, size);
 };
 
 // get a random color
@@ -338,6 +383,9 @@ var update = function update() {
   // move ball
   lerpCharacter(ball);
 
+  // check hit for sound
+  if (ball.hit) playSound("hit");
+
   // update serve on my position
   SendPositionUpdate();
 };
@@ -384,6 +432,8 @@ var initGame = function initGame() {
   linkEvents();
   // let the games begin
   gameLoop();
+  // note
+  playing = true;
 };
 //window.addEventListener('load', init);
 "use strict";

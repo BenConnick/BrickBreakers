@@ -9,6 +9,8 @@ const players = {};
 const ball = new Ball();
 // list of the bricks
 const bricks = [];
+// game started
+let playing = false;
 
 const directions = {
   DOWNLEFT: 0,
@@ -23,6 +25,7 @@ const directions = {
 
 // draw to the screen
 const draw = () => {
+
   // clear color
   ctx.fillStyle = 'black';
   ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -38,8 +41,12 @@ const draw = () => {
     if (players.hasOwnProperty(name)) {
         const p = players[name];
         ctx.fillStyle = p.color;
-        ctx.fillText(`${name}(${p.score})`, p.x + 5,p.y + 65);
-        ctx.fillRect(p.x,p.y,50,50);
+        ctx.fillText(`${name}(${p.score})`, p.x + 5,p.y + 72);
+        if (ball.hit && ball.ownerName == p.name) {
+          ctx.fillRect(p.x-5,p.y-5,60,60);
+        } else {
+          ctx.fillRect(p.x,p.y,50,50);
+        }
     }
   }
   
@@ -50,8 +57,12 @@ const draw = () => {
     ctx.fillStyle = "white";
   }
   let size = 10;
-  if (ball.hit) size = 20;
-  ctx.fillRect(ball.x,ball.y,size,size);
+  let offset = 0;
+  if (ball.hit) {
+    size = 20;
+    offset = -5;
+  }
+  ctx.fillRect(ball.x + offset,ball.y + offset,size,size);
 };
 
 // get a random color
@@ -161,6 +172,9 @@ const update = () => {
   // move ball
   lerpCharacter(ball);
   
+  // check hit for sound
+  if (ball.hit) playSound("hit");
+  
   // update serve on my position
   SendPositionUpdate();
 };
@@ -207,5 +221,7 @@ const initGame = () => {
   linkEvents();
   // let the games begin
   gameLoop();
+  // note
+  playing = true;
 };
 //window.addEventListener('load', init);

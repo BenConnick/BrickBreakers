@@ -144,14 +144,39 @@ const checkForOldPlayer = (sock, data) => {
 };
 
 const removeSocket = (sock) => {
+  // store reference to strings and ints
   const name = getPlayerNameFromSocket(sock);
+  const socketIndex = sockets.indexOf(sock);
+
   // don't bother with players from old sessions
   if (name === undefined || playerDic[name] === undefined) return;
-  const socketIndex = sockets.indexOf(sock);
+
+  // report to clients
   sock.to(playerDic[name].room).emit('player disconnected', name);
+
+  // check if room is empty
+  const emptyRoom = (rooms[playerDic[name].room].gameInstance.numCharacters === 1) ?
+    playerDic[name].room : undefined;
+
+  // delete character ref
+  rooms[playerDic[name].room].gameInstance.numCharacters--;
   delete rooms[playerDic[name].room].gameInstance.characters[name];
+
+  // remove from dictionary
+  playerDic[name] = undefined;
   delete playerDic[name];
+
+  // remove from sockets list
+  sockets[socketIndex] = undefined;
   delete sockets[socketIndex];
+
+  // clear empty room
+  if (emptyRoom !== undefined) {
+    rooms[emptyRoom] = undefined;
+    delete rooms[emptyRoom];
+  }
+
+  // print to server log
   console.log(`${name} left`);
 };
 
