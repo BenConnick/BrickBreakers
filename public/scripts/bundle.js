@@ -222,6 +222,9 @@ var ball = new Ball();
 var bricks = [];
 // game started
 var playing = false;
+// game over
+var gameOver = false;
+var winner = undefined;
 
 var directions = {
   DOWNLEFT: 0,
@@ -247,6 +250,7 @@ var draw = function draw() {
     ctx.fillRect(b.x, b.y, b.w, b.w);
   });
 
+  ctx.font = "20px Arial";
   // draw players
   for (var name in players) {
     if (players.hasOwnProperty(name)) {
@@ -274,6 +278,16 @@ var draw = function draw() {
     offset = -5;
   }
   ctx.fillRect(ball.x + offset, ball.y + offset, size, size);
+
+  // draw GAMEOVER overlay
+  if (gameOver && winner !== undefined) {
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "white";
+    ctx.font = "80px Arial";
+    ctx.fillText("GAME OVER", 100, 300);
+    ctx.fillText(winner + " won!", 100, 400);
+  }
 };
 
 // get a random color
@@ -291,6 +305,12 @@ var handleMessageFromServer = function handleMessageFromServer(msg) {
   ball = msg.ball;
   // update blocks
   bricks = msg.bricks;
+  if (msg.flags.hasOwnProperty("winner")) {
+    // winner found
+    winner = msg.flags.winner;
+    gameOver = true;
+  }
+
   // update other players
   for (var characterName in msg.characters) {
     if (characterName === myName) {
@@ -419,7 +439,7 @@ var linkEvents = function linkEvents() {
 // initialize variables
 var initGame = function initGame() {
   canvas = document.querySelector('canvas');
-  canvas.onclick = fullScreen;
+  //canvas.onclick = fullScreen;
   ctx = canvas.getContext('2d');
 
   // misc.

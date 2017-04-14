@@ -11,6 +11,9 @@ const ball = new Ball();
 const bricks = [];
 // game started
 let playing = false;
+// game over
+let gameOver = false;
+let winner = undefined;
 
 const directions = {
   DOWNLEFT: 0,
@@ -36,6 +39,7 @@ const draw = () => {
       ctx.fillRect(b.x,b.y,b.w,b.w);
   });
   
+  ctx.font="20px Arial";
   // draw players
   for (let name in players) {
     if (players.hasOwnProperty(name)) {
@@ -63,6 +67,16 @@ const draw = () => {
     offset = -5;
   }
   ctx.fillRect(ball.x + offset,ball.y + offset,size,size);
+  
+  // draw GAMEOVER overlay
+  if (gameOver && winner !== undefined) {
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "white";
+    ctx.font="80px Arial";
+    ctx.fillText("GAME OVER",100,300);
+    ctx.fillText(winner+" won!",100,400);
+  }
 };
 
 // get a random color
@@ -80,6 +94,12 @@ const handleMessageFromServer = (msg) => {
   ball = msg.ball;
   // update blocks
   bricks = msg.bricks;
+  if (msg.flags.hasOwnProperty("winner")) {
+    // winner found
+    winner = msg.flags.winner;
+    gameOver = true;
+  }
+  
   // update other players
   for (let characterName in msg.characters) {
     if (characterName === myName) {
@@ -208,7 +228,7 @@ const linkEvents = () => {
 // initialize variables
 const initGame = () => {
   canvas = document.querySelector('canvas');
-  canvas.onclick = fullScreen;
+  //canvas.onclick = fullScreen;
   ctx = canvas.getContext('2d');
   
   // misc.

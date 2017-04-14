@@ -22,6 +22,7 @@ class Ball {
     this.destY = 400; // destination y location of ball
     this.ownerName = undefined; // owner name
     this.alpha = 0;
+    this.flags = {};
   }
 }
 
@@ -176,6 +177,7 @@ class GameInstance {
         const character = this.characters[names[i]];
         if (character.score > this.bricks.length) {
           // winner found, end game
+          this.flags.winner = character.name;
         }
       }
     }
@@ -205,12 +207,14 @@ class GameInstance {
   }
 
   updateClients(io, key) {
+    this.flags = {};
     this.update();
     // emit the list of characters to each room
     const output = {
       bricks: this.bricks,
       characters: this.characters,
       ball: this.ball,
+      flags: this.flags,
     };
     io.to(key).emit('output', output);
   }
